@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(RColorBrewer)
 ```
 
 ## Import dataset
@@ -55,7 +56,7 @@ morph_stats
 ```
 
 
-### 2-sample t-test
+### 2-sample t-test for Area
 
 ```{r}
 hot_sample <- data %>%
@@ -67,5 +68,51 @@ ambient_sample <- data %>%
   pull(Area)
 
 t.test(x = hot_sample, ambient_sample)
+```
+
+### 2-sample t-test for Diameter
+
+```{r}
+hot_sample_diameter <- data %>%
+  filter(Treatment == "Hot") %>%
+  pull(Diameter)
+
+ambient_sample_diameter <- data %>%
+  filter(Treatment == "Ambient") %>%
+  pull(Diameter)
+
+t.test(x = hot_sample_diameter, ambient_sample_diameter)
+```
+
+
+### Creating a box plot for Egg diameter
+
+```{r}
+ggplot(data, aes(x = Treatment, y = Diameter, fill = Treatment)) +
+  geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
+  theme_classic()+
+  xlab("Adult Treatment") +
+  ylab("Egg Diameter (mm)") +
+  scale_fill_manual(values = c("#3399CC","#CC0000"))+
+  annotate(geom = "text", x= 2.3, y = 0.025, label = " p < 0.001",
+           size = 4)
+  
+  
+```
+
+### Creating a box plot for Egg Area
+
+```{r}
+
+ggplot(data, aes(x = Treatment, y = Area, fill = Treatment)) +
+  geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
+  theme_classic()+
+  xlab("Adult Treatment") +
+  ylab(bquote('Egg Area (' ~mm^2 ~')'))+
+  scale_fill_manual(values = c("#3399CC","#CC0000"))+
+  annotate(geom = "text", x= 2.3, y = 0.00025, label = " p < 0.001",
+           size = 4)+
+  ylim(0,0.015)
+  
 ```
 
