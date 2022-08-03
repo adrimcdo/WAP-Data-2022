@@ -1,0 +1,71 @@
+---
+title: "Egg Morphometric Analysis"
+author: "Adriane McDonald"
+date: '2022-08-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Import dataset
+
+```{r}
+data <- read_csv("~/Desktop/WAP_data_2022/wap_eggs_morphs_08032022_1.csv")
+```
+
+### Exploratory data visualization
+
+Exploratory histograms: 
+
+```{r}
+ggplot(data, aes(x = Area)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment)
+
+ggplot(data, aes(x= Diameter)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment)
+
+```
+
+### Quantile-quantile
+
+```{r}
+ggplot(data, aes(sample = Area))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+
+ggplot(data, aes(sample = Diameter))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+```
+
+### Descriptive Statistics 
+
+```{r}
+morph_stats <- data %>%
+  group_by(Treatment) %>%
+  summarize(mean_area = mean(Area),
+            sd_area = sd(Area),
+            n = n())
+morph_stats
+```
+
+
+### 2-sample t-test
+
+```{r}
+hot_sample <- data %>%
+  filter(Treatment == "Hot") %>%
+  pull(Area)
+
+ambient_sample <- data %>%
+  filter(Treatment == "Ambient") %>%
+  pull(Area)
+
+t.test(x = hot_sample, ambient_sample)
+```
+
