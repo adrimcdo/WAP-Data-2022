@@ -1,0 +1,250 @@
+---
+title: "WAP Thermal Tolerance Analysis"
+author: "Adriane McDonald"
+date: '2022-08-08'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+```
+
+
+#Using Jannine's code to analyze thermal tolerance
+
+1. Install Packages & Files
+```{r}
+install.packages("tidyverse")
+library(tidyverse)
+library(MASS)
+
+data<-read.csv(file="wap_tt_072022.csv")
+```
+
+2.Calculating LT
+```{r}
+attach(data)
+
+#GLM for Hot Mo
+keepMo=c(1)
+Mo_warm_data=subset(data, stage_no %in% keepMo & treatment == "warm")
+attach(Mo_warm_data)
+y1=cbind(alive, dead)
+model1=glm(y1~temp, family=binomial)
+summary(model1)
+
+#Intercept   2.12190 
+#Temperature  -0.07800
+
+logmodel1=glm(y1~log(temp), binomial)
+summary(logmodel1)
+
+LT_warm_Mo=dose.p(model1, p=c(0.5, 0.75, 0.9))
+LT_warm_Mo
+
+# Dose        SE
+# p = 0.5: 27.2024384 0.8055898
+# p = 0.75: 13.1183996 2.3003054
+# p = 0.9: -0.9656392 4.2472846
+
+logLT_warm_Mo=dose.p(logmodel1, p=c(0.5, 0.75, 0.9))
+logLT_warm_Mo
+
+#         Dose          SE
+#p = 0.5: 3.267421 0.03993662
+
+exp(3.267421) #26.24357
+exp(2.569978) #13.06554
+exp(1.872535) #6.504765
+```
+
+```{r}
+#GLM for Ambient Mo
+keepMo=c(1)
+Mo_amb_data=subset(data, stage_no %in% keepMo & treatment == "ambient")
+attach(Mo_amb_data)
+y2=cbind(alive, dead)
+model2=glm(y2~temp, family=binomial)
+summary(model2)
+
+#Intercept   3.45379 
+#Temperature  -0.14558
+
+logmodel2=glm(y2~log(temp), binomial)
+summary(logmodel2)
+
+LT_amb_Mo=dose.p(model2, p=c(0.5, 0.75, 0.9))
+LT_amb_Mo
+
+# Dose        SE
+# p = 0.5: 23.723920 0.5294605
+# p = 0.75: 16.177613 1.0371125
+# p = 0.9: 8.631305 1.6445534
+
+logLT_amb_Mo=dose.p(logmodel2, p=c(0.5, 0.75, 0.9))
+logLT_amb_Mo
+
+#         Dose          SE
+#p = 0.5: 3.139576 0.02252124
+
+exp(3.139576)#23.09407
+exp(2.827420) #16.9018
+exp(2.515263) #12.36986
+```
+
+
+```{r}
+#GLM for warm Prism
+keepPrism=c(2)
+prism_warm_data=subset(data, stage_no %in% keepPrism & treatment == "warm")
+attach(prism_warm_data)
+y3=cbind(alive, dead)
+model3=glm(y3~temp, family=binomial)
+summary(model3)
+
+#Intercept    7.37283
+#Temperature  -0.23494
+
+logmodel3=glm(y3~log(temp), binomial)
+summary(logmodel3)
+
+LT_prism_warm=dose.p(model3, p=c(0.5, 0.75, 0.9))
+LT_prism_warm
+
+#              Dose        SE
+#p = 0.50: 31.38214 0.2880857
+#p = 0.75: 26.70594 0.4016433
+#p = 0.90: 22.02974 0.6684909
+
+logLT_prism_warm=dose.p(logmodel3, p=c(0.5))
+logLT_prism_warm
+
+#         Dose          SE
+#p = 0.5: 3.440596 0.01134723
+
+exp(3.440596) #31.20555
+```
+
+```{r}
+#GLM for ambient Prism
+keepPrism=c(2)
+prism_amb_data=subset(data, stage_no %in% keepPrism & treatment == "ambient")
+attach(prism_amb_data)
+y4=cbind(alive, dead)
+model4=glm(y4~temp, family=binomial)
+summary(model4)
+
+#Intercept    19.62059
+#Temperature  -0.62288
+
+logmodel4=glm(y4~log(temp), binomial)
+summary(logmodel4)
+
+LT_prism_amb=dose.p(model4, p=c(0.5, 0.75, 0.9))
+LT_prism_amb
+
+
+
+#              Dose        SE
+#p = 0.50: 31.49968 0.1512445
+#p = 0.75: 29.73593 0.1734280
+#p = 0.90: 27.97217 0.2425571
+
+logLT_prism_amb=dose.p(logmodel4, p=c(0.5))
+logLT_prism_amb
+
+#         Dose          SE
+#p = 0.5: 3.447162 0.005067455
+
+exp(3.447162) #31.41112
+```
+
+
+4. Plotting Data
+```{r}
+attach(data)
+data$treatment<-factor(data$treatment, levels=c("warm", "ambient"))
+colors<-c("#CC0000", "#3399CC")
+colors<-colors[as.factor(data$treatment)]
+plot(temp, (alive/(alive+dead)), xlab="Temperature (C)", col=colors, ylab="Proportion Alive", pch=20)
+legend("bottomleft", inset=.02, title="Treatment", legend=levels(data$treatment), col=c("#CC0000", "#3399CC"), pch=20)
+logisticline_Mo_warm = function(z) {eta_Mo_warm = 2.12190 + -0.07800 * z; 1 / (1+exp(-eta_Mo_warm))}
+x=seq(17,37,0.01)
+lines(x, logisticline_Mo_warm(x), new=TRUE, col="#CC0000")
+logisticline_Mo_amb=function(z) {eta_Mo_amb = 3.45379 + -0.14558 * z; 1 / (1+exp(-eta_Mo_amb))}
+x=seq(17,37,0.01)
+lines(x, logisticline_Mo_amb(x), new=TRUE, col="#3399CC")
+title(main = "Morula")
+
+```
+
+```{r}
+prism_tt <- data %>% 
+  filter(dev_stage == 2)
+
+
+keepPrism=c(2)
+prism_data=subset(data, stage_no %in% keepPrism)
+
+#plot(prism_data, x = temp, y = survival, xlab= "Temperature (C)", col=colors, ylab="Proportion #legend("bottomleft", inset=.02, title="Treatment", legend=levels(data$treatment), col=c("#CC0000", "#3399CC"), pch=20)
+#logisticline_Prism_warm = function(z) {eta_Prism_warm = 7.37283 + -0.23494 * z; 1 / (1+exp(-eta_Prism_warm))}
+#x=seq(17,37,0.01)
+#lines(x, logisticline_Prism_warm(x), new=TRUE, col="#CC0000")
+#logisticline_Prism_amb=function(z) {eta_Prism_amb = 19.62059 + -0.62288 * z; 1 / (1+exp(-eta_Prism_amb))}
+#x=seq(17,37,0.01)
+#lines(x, logisticline_Prism_amb(x), new=TRUE, col="#3399CC")
+#title(main = "Prism")
+
+cols <- c("red","lightblue")
+ ggplot(prism_data, aes(x = temp, y = survival, color = treatment))+
+  geom_point(size = 2)+
+  theme_bw()+
+  xlab("Temperature (C)")+
+  ylab("Proportion Alive")+
+  scale_color_manual(values = cols)+
+  labs(color = "Treatment")+
+  stat_smooth(method = "glm",
+              method.args = list(family = "binomial"),
+              se = FALSE)+
+  geom_smooth(aes(color = treatment),
+              method = "glm",
+              method.args = list(family = "binomial"),
+              se = FALSE)
+
+
+      
+
+
+#Intercept    7.37283
+#Temperature  -0.23494
+
+#Intercept    19.62059
+#Temperature  -0.62288
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
