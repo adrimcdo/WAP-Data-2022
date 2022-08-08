@@ -1,0 +1,160 @@
+---
+title: "WAP Morula Morphometrics_2"
+author: "Adriane McDonald"
+date: '2022-08-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+## Import dataset
+
+```{r}
+data_2 <- read_csv("~/Desktop/WAP_data_2022/WAP_morula_morphs_2.csv")
+```
+
+### Exploratory data visualization
+
+Exploratory histograms: 
+
+```{r}
+#here I am looking at the distribution of data, specifically area
+ggplot(data_2, aes(x = Area)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment) #facet wrap allows us to look at both hot and ambient treatments in seperate parts of the graph 
+
+#here I am looking at the distribution of data, specifically diameter as it relates to treatment
+ggplot(data_2, aes(x= Diameter)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment)
+
+```
+
+Quantile-quantile:
+
+```{r}
+#quantile-quantile plots are a method for determining if 2 datasets come from populations with a common distribution
+
+ggplot(data_2, aes(sample = Area))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+
+ggplot(data_2, aes(sample = Diameter))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+```
+
+### Descriptive Statistics 
+
+```{r}
+#AREA
+morula_area_stats <- data_2 %>%
+  group_by(Treatment) %>%
+  summarize(mean_area = mean(Area),
+            sd_area = sd(Area),
+            n = n())
+morula_area_stats
+
+#pulling out the mean, standard deviation, and sample size of the morula area by treatment
+
+#generating a table
+
+morula_area_stats %>%
+  kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
+      align = 'c') %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+#DIAMETER
+morula_diameter_stats <- data_2 %>%
+  group_by(Treatment) %>%
+  summarize(mean_diameter = mean(Diameter),
+            sd_area = sd(Diameter),
+            n = n())
+morula_diameter_stats
+
+#pulling out the mean, standard deviation, and sample size of the morula diameter by treatment
+
+#generating a table
+
+morula_diameter_stats %>%
+  kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
+      align = 'c') %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+morula_diameter_stats
+
+```
+
+### 2-sample t-test for Area
+
+```{r}
+hot_sample <- data_2 %>%
+  filter(Treatment == "Warm") %>%
+  pull(Area)
+
+#pulling out the data for area for warm morulas 
+
+ambient_sample <- data_2 %>%
+  filter(Treatment == "Ambient") %>%
+  pull(Area)
+
+#pulling out the data for area for ambient morulas
+
+t.test(x = hot_sample, ambient_sample)
+
+#conducting a two-sample t-test in order to test if the population means of ambient and hot morula area are equal or not 
+```
+
+### 2-sample t-test for Diameter
+
+```{r}
+hot_sample_diameter <- data_2 %>%
+  filter(Treatment == "Warm") %>%
+  pull(Diameter)
+
+#pulling out the data for diameter for warm morulas
+
+ambient_sample_diameter <- data_2 %>%
+  filter(Treatment == "Ambient") %>%
+  pull(Diameter)
+
+#pulling out the data for area for ambient morulas
+
+t.test(x = hot_sample_diameter, ambient_sample_diameter)
+
+#conducting a two-sample t-test in order to test if the population means of ambient and hot morula diameter are equal or not 
+```
+
+
+### Creating a box plot for Egg diameter
+
+```{r}
+ggplot(data_2, aes(x = Treatment, y = Diameter, fill = Treatment)) +
+  geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
+  theme_classic()+
+  xlab("Embryo Treatment") +
+  ylab("Morula Diameter (mm)") +
+  scale_fill_manual(values = c("lightblue","red"))
+  
+  
+```
+
+### Creating a box plot for Egg Area
+
+```{r}
+
+ggplot(data_2, aes(x = Treatment, y = Area, fill = Treatment)) +
+  geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
+  theme_bw()+
+  xlab("Embryo Treatment") +
+  ylab(bquote('Morula Area (' ~mm^2 ~')'))+
+  scale_fill_manual(values = c("lightblue","red"))+
+  annotate(geom = "text", x= 2.3, y = 0.00025, label = " p < 0.001",
+           size = 4)
+  
+```
+

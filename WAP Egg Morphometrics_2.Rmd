@@ -1,0 +1,82 @@
+---
+title: "WAP Egg Morphometrics_2"
+author: "Adriane McDonald"
+date: '2022-08-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+## Import dataset
+
+```{r}
+data_2 <- read_csv("~/Desktop/WAP_data_2022/WAP_egg_morphs_2.csv")
+```
+
+### Exploratory data visualization
+
+Exploratory histograms: 
+
+```{r}
+ggplot(data_2, aes(x = Area)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment)
+
+ggplot(data_2, aes(x= Diameter)) +
+  geom_histogram(bins = 15) +
+  facet_wrap(~Treatment)
+
+```
+
+### Quantile-quantile
+
+```{r}
+ggplot(data_2, aes(sample = Area))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+
+ggplot(data_2, aes(sample = Diameter))+
+  geom_qq()+
+  facet_wrap(~Treatment)
+```
+
+### Descriptive Statistics 
+
+```{r}
+#AREA
+morph_area_stats <- data_2 %>%
+  group_by(Treatment) %>%
+  summarize(mean_area = mean(Area),
+            sd_area = sd(Area),
+            n = n())
+morph_area_stats
+
+#generating a table
+
+morph_area_stats %>%
+  kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
+      align = 'c') %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+#DIAMETER
+morph_diameter_stats <- data %>%
+  group_by(Treatment) %>%
+  summarize(mean_diameter = mean(Diameter),
+            sd_area = sd(Diameter),
+            n = n())
+morph_diameter_stats
+
+#generating a table
+
+morph_diameter_stats %>%
+  kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
+      align = 'c') %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+morph_diameter_stats
+
+```

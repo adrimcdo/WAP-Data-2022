@@ -1,5 +1,5 @@
 ---
-title: "Egg Morphometric Analysis"
+title: "WAP2 Eggs Morphometrics"
 author: "Adriane McDonald"
 date: '2022-08-03'
 output: html_document
@@ -8,14 +8,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(RColorBrewer)
 library(kableExtra)
 ```
 
 ## Import dataset
 
 ```{r}
-data <- read_csv("~/Desktop/WAP_data_2022/wap_eggs_morphs_08032022_1.csv")
+egg2_data <- read_csv("~/Desktop/WAP_data_2022/eggs_morphs_2_wap.csv")
 ```
 
 ### Exploratory data visualization
@@ -23,11 +22,11 @@ data <- read_csv("~/Desktop/WAP_data_2022/wap_eggs_morphs_08032022_1.csv")
 Exploratory histograms: 
 
 ```{r}
-ggplot(data, aes(x = Area)) +
+ggplot(egg2_data, aes(x = Area)) +
   geom_histogram(bins = 15) +
   facet_wrap(~Treatment)
 
-ggplot(data, aes(x= Diameter)) +
+ggplot(egg2_data, aes(x= Diameter)) +
   geom_histogram(bins = 15) +
   facet_wrap(~Treatment)
 
@@ -36,11 +35,11 @@ ggplot(data, aes(x= Diameter)) +
 ### Quantile-quantile
 
 ```{r}
-ggplot(data, aes(sample = Area))+
+ggplot(egg2_data, aes(sample = Area))+
   geom_qq()+
   facet_wrap(~Treatment)
 
-ggplot(data, aes(sample = Diameter))+
+ggplot(egg2_data, aes(sample = Diameter))+
   geom_qq()+
   facet_wrap(~Treatment)
 ```
@@ -49,36 +48,36 @@ ggplot(data, aes(sample = Diameter))+
 
 ```{r}
 #AREA
-morph_area_stats <- data %>%
+egg2_area_stats <- egg2_data %>%
   group_by(Treatment) %>%
   summarize(mean_area = mean(Area),
             sd_area = sd(Area),
             n = n())
-morph_area_stats
+egg2_area_stats
 
 #generating a table
 
-morph_area_stats %>%
+egg2_area_stats %>%
   kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
       align = 'c') %>%
   kable_classic(full_width = F, html_font = "Cambria")
 
 #DIAMETER
-morph_diameter_stats <- data %>%
+egg2_diameter_stats <- egg2_data %>%
   group_by(Treatment) %>%
   summarize(mean_diameter = mean(Diameter),
             sd_area = sd(Diameter),
             n = n())
-morph_diameter_stats
+egg2_diameter_stats
 
 #generating a table
 
-morph_diameter_stats %>%
+egg2_diameter_stats %>%
   kbl(col.names = c("Treatment", "Mean", "Standard Deviation", "Sample Size"),
       align = 'c') %>%
   kable_classic(full_width = F, html_font = "Cambria")
 
-morph_diameter_stats
+egg2_diameter_stats
 
 ```
 
@@ -86,11 +85,11 @@ morph_diameter_stats
 ### 2-sample t-test for Area
 
 ```{r}
-hot_sample <- data %>%
-  filter(Treatment == "Warm") %>%
+hot_sample <- egg2_data %>%
+  filter(Treatment == "Hot") %>%
   pull(Area)
 
-ambient_sample <- data %>%
+ambient_sample <- egg2_data %>%
   filter(Treatment == "Ambient") %>%
   pull(Area)
 
@@ -100,11 +99,11 @@ t.test(x = hot_sample, ambient_sample)
 ### 2-sample t-test for Diameter
 
 ```{r}
-hot_sample_diameter <- data %>%
-  filter(Treatment == "Warm") %>%
+hot_sample_diameter <- egg2_data %>%
+  filter(Treatment == "Hot") %>%
   pull(Diameter)
 
-ambient_sample_diameter <- data %>%
+ambient_sample_diameter <- egg2_data %>%
   filter(Treatment == "Ambient") %>%
   pull(Diameter)
 
@@ -115,12 +114,12 @@ t.test(x = hot_sample_diameter, ambient_sample_diameter)
 ### Creating a box plot for Egg diameter
 
 ```{r}
-ggplot(data, aes(x = Treatment, y = Diameter, fill = Treatment)) +
+ggplot(egg2_data, aes(x = Treatment, y = Diameter, fill = Treatment)) +
   geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
-  theme_bw()+
+  theme_classic()+
   xlab("Adult Treatment") +
   ylab("Egg Diameter (mm)") +
-  scale_fill_manual(values = c("lightblue","red"))+
+  scale_fill_manual(values = c("#3399CC","#CC0000"))+
   annotate(geom = "text", x= 2.3, y = 0.025, label = " p < 0.001",
            size = 4)
   
@@ -131,13 +130,13 @@ ggplot(data, aes(x = Treatment, y = Diameter, fill = Treatment)) +
 
 ```{r}
 
-ggplot(data, aes(x = Treatment, y = Area, fill = Treatment)) +
+ggplot(egg2_data, aes(x = Treatment, y = Area, fill = Treatment)) +
   geom_boxplot(outlier.colour = "black", outlier.shape = 1)+
-  theme_bw()+
+  theme_classic()+
   xlab("Adult Treatment") +
   ylab(bquote('Egg Area (' ~mm^2 ~')'))+
-  scale_fill_manual(values = c("lightblue","red"))+
-  annotate(geom = "text", x= 2.3, y = 0.00025, label = " p < 0.001",
+  scale_fill_manual(values = c("#3399CC","#CC0000"))+
+  annotate(geom = "text", x= 2.3, y = 0.00025, label = " p < 0.01",
            size = 4)+
   ylim(0,0.015)
   
